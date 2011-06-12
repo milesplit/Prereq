@@ -23,7 +23,7 @@ Example use
 
 Prereq.add(
 		{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' },
-		{ name:'facebook', url:'<?=HTTP_OR_HTTPS?>://connect.facebook.net/en_US/all.js' },
+		{ name:'facebook', url:'http://connect.facebook.net/en_US/all.js' },
 		'/js/some-other-file.js'
 	).after('facebook', function() {
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
