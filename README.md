@@ -21,6 +21,7 @@ This project is NOT done.. it is NOT tested.. it is in its very very early stage
 Example use
 -------
 
+
 Prereq.add(
 		{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' },
 
@@ -37,11 +38,13 @@ Prereq.add(
 
 NOW LET'S DEFINE some-other-file.js
 
+
 Prereq.after(['jquery', 'facebook'], function() {
 
 ........... define your custom code however you normally would ......
 
 });
+
 
 Explaination
 -------
