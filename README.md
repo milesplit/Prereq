@@ -23,6 +23,7 @@ Example use
 
 
 Prereq.add(
+
 		{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' },
 
 		{ name:'facebook', url:'http://connect.facebook.net/en_US/all.js' },
