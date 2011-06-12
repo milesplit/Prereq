@@ -1,13 +1,30 @@
+/*prereq1.0|MIT*/
+// prereq.js
+// Version - 1.0
+//
+// by
+// Jason Byrne - @jasonbyrne - jbyrne[at]milesplit.com
+//
+// http://github.com/milesplit/Prereq
+//
+// License: MIT
+//
+// Please minify before use.
+//
 
 var Prereq = (function(d) {
+	// Private variables
 	var Me = this,
 		_q = {},
 		_listeners = { loading:[], loaded:[] },
 		_head = d.head || d.getElementsByTagName('head')[0];
-	var _loaded = function(k, t) {
+	// Private methods
+	// fire a loaded or loading event
+	var _fire = function(k, t) {
 		_q[k][t] = true;
 		Me.fire(t, { type:t, name:k, url:_q[k].url });
 	};
+	// does the action of adding the script
 	var _load = function(k) {
 		_fire(k, 'loeading');
 		if (_q[k].url) {
@@ -26,6 +43,7 @@ var Prereq = (function(d) {
 			_fire(k, 'loaded');
 		}
 	};
+	// tests if a list of requirements are done loading
 	var _areLoaded = function(list) {
 		var done = true;
 		if ('length' in list) {
@@ -40,6 +58,7 @@ var Prereq = (function(d) {
 		}
 		return done;
 	};
+	// adds requirements to load queue
 	Me.add = function(a) {
 		var l = a.length;
 		for (var i=0; i < l; i++) {
@@ -52,6 +71,7 @@ var Prereq = (function(d) {
 		}
 		return Me;
 	}
+	// Either fire callback right away if all are done or set a listener to wait
 	Me.after = function(m, f) {
 		if (_areLoaded(m)) {
 			f();
@@ -66,9 +86,11 @@ var Prereq = (function(d) {
 		});
 		return Me;
 	};
+	// set listener
 	Me.on = function(type, f) {
 		_listeners[type].push(f);
 	};
+	// fire event
 	Me.fire = function(type, o) {
 		var l = _listeners[type].length;
 		for (var i=0; i < l; i++) {
