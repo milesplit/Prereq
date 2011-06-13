@@ -38,6 +38,7 @@ NOW LET'S DEFINE some-other-file.js
 Prereq.after(['jquery', 'facebook'], function() {
 
 ........... define your custom code however you normally would ......
+...... we know facebook and jquery have loaded now ....
 
 });
 ```
@@ -45,19 +46,14 @@ Prereq.after(['jquery', 'facebook'], function() {
 Explaination
 -------
 
-The add method will (for now at least... could possibly change or augment) load all of the scripts
-as script elements and therefore execute right away.
+The add method will load all of the scripts as script elements and therefore execute right away, but through event listeners
+(both inline in our main file and also in our js files with prereqs) we can prevent the meat of the code from executing until the prereqisites are done loading.
 
-But through event listeners (both inline in our main file and also in our js files with prereqs)
-we can only execute the code with prereqs after it loads.
+We provide modules that have dependencies with names... so that we can easily refer to them by that  name to make sure they have loaded.
 
-We provide modules that have dependencies with names... so that we can easily refer to them by that 
-name to make sure they have loaded.
-
-The after method will check if its loaded and if so immediately hit the callback or otherwise
-it will set the appropriate listeners.
+The after method will check if its loaded and if so immediately hit the callback or otherwise it will set the appropriate listeners.
 
 Next?
 -------
 
-....
+I'd like to be able have the url passed via add be an array so that you can provide fallback URLs. Will probably need to set a timeout for this to consider the first one failed.
