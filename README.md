@@ -16,6 +16,8 @@ The goal of this project is to be simple all the way around...
 * Simple syntax handing for dependencies and callbacks
 * Load all scripts right away (with some exceptions)
 * Be able to define the requirements in the external js file... for more modularization
+* Don't get sucked into trying to support every old browser known to man. If they're still using IE5 or Netscape they are used to sites not working.
+* Keep it as small as possible.
 
 Example use
 -------
