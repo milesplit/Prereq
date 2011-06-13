@@ -1,39 +1,32 @@
 Prereq
 =============
 
-Yes, another JavaScript loader
+Yes, another JavaScript loader. I know, I know.
 
 Why?
 -------
 
-Here is the main purpose of what I'm after. I don't especially like the syntax of a
-lot of what is out there. I like parts of it, but it just seems too messy or overly
-complex... or the project does too many other things.
+I looked at a lot of the ones out there. And I really like pieces of them, but I just don't like the whole thing. I either
+think the syntax is convoluted and overly complex or they try to do too many things or whatever.
 
-I wanted an easy way to say what was required and wait for dependencies to load.
-We can go ahead and load them all (for the most part) and even execute them without
-waiting... because you can wrap your code execution in an event listener defining
-its prereqs.
+The goal of this project is to be simple all the way around...
 
-This project is NOT done.. it is NOT tested.. it is in its very very early stages.
-
+* Focused in its purpose: don't get sucked into doing more than just loading scripts.
+* Event based
+* Simple syntax handing for dependencies and callbacks
+* Load all scripts right away (with some exceptions)
+* Be able to define the requirements in the external js file... for more modularization
 
 Example use
 -------
 
 ```javascript
-Prereq.add(
-
-		{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' },
-
-		{ name:'facebook', url:'http://connect.facebook.net/en_US/all.js' },
-
-		'/js/some-other-file.js'
-
-	).after('facebook', function() {
-
+Prereq
+	.add('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
+	.add('facebook', 'http://connect.facebook.net/en_US/all.js')
+	.add('/js/some-other-file.js')
+	.after('facebook', function() {
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
-
 	});
 ```
 
