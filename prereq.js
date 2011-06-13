@@ -14,92 +14,82 @@
 
 var Prereq = (function(d) {
 	// Private variables
-	var Me = this,
-		_q = {},
-		_listeners = { loading:[], loaded:[] },
-		_head = d.head || d.getElementsByTagName('head')[0];
-	// Private methods
-	// fire a loaded or loading event
-	var _fire = function(k, t) {
-		_q[k][t] = true;
-		Me.fire(t, { type:t, name:k, url:_q[k].url });
+	var Me = this,	// self-reference
+		_q = {},	// queue of scripts
+		_l = { loading:[], loaded:[] },	// listeners
+		_h = d.head || d.getElementsByTagName('head')[0];	// head
+	// Private: Fire Event (n=queue name, t=event type)
+	var _f = function(n, t) {
+		// Mark it in the queue
+		_q[n][t] = true;
+		// Loop through and call any listeners
+		var l = _l[t].length;
+		for (var i=0; i < l; i++) {
+			_l[t][i]({ type:t, name:n, url:_q[n].url });
+		}
 	};
-	var isArray = function(o) {
-  		return Object.prototype.toString.call(o) === '[object Array]';
+	// is array
+	var _a = function(o) {
+  		return {}.toString.call(o) == '[object Array]';
 	};
-	// does the action of adding the script
-	var _load = function(k) {
-		_fire(k, 'loading');
-		if (_q[k].url) {
+	// Ready? (list: array or string)
+	var _r = function(list) {
+		var d = true;
+		if (_a(list)) {
+			for (var i=0; i < list.length; i++) {
+				if (!_q[list[i]].loaded) {
+					d = false
+					break;
+				}
+			}
+		} else if (!_q[list].loaded) {
+			d = false;
+		}
+		return d;
+	};
+	// adds requirements to load queue
+	Me.add = function(a, b) {
+		if (!b) {
+			b=a;
+			a=_q.length;
+		}
+		_q[a] = { name:a, url:b, loading:false, loaded:false };
+		_f(a, 'loading');
+		if (b) {
 			var s = d.createElement('script');
-			s.src=_q[k].url;
+			s.src=b;
 			s.type='text/javascript';
 			s.async='async';
 			s.onload = s.onreadystatechange = function() {
 				if (!s.readyState || /loaded|complete/.test(s.readyState)) {
 					s.onload = s.onreadystatechange = null;
-					_fire(k, 'loaded');
+					_f(a, 'loaded');
 				}
 			}
-			_head.appendChild(s);
+			_h.appendChild(s);
 		} else {
-			_fire(k, 'loaded');
-		}
-	};
-	// tests if a list of requirements are done loading
-	var _areLoaded = function(list) {
-		var done = true;
-		if (isArray(list)) {
-			for (var i=0; i < list.length; i++) {
-				console.log(list[i]);
-				if (!_q[list[i]].loaded) {
-					done = false
-					break;
-				}
-			}
-		} else if (!_q[list].loaded) {
-			done = false;
-		}
-		return done;
-	};
-	// adds requirements to load queue
-	Me.add = function() {
-		var l = arguments.length;
-		for (var i=0; i < l; i++) {
-			var o = arguments[i];
-			if (!o.name) o.name=i;
-			if (!_q[o.name]) {
-				_q[o.name] = { name:o.name, url:o.url, loading:false, loaded:false };
-				_load(o.name);
-			}
+			_f(a, 'loaded');
 		}
 		return Me;
 	}
 	// Either fire callback right away if all are done or set a listener to wait
 	Me.after = function(m, f) {
-		if (_areLoaded(m)) {
+		if (_r(m)) {
 			f();
 			return Me;
 		}
-		var done = false;
+		var d = false;
 		Me.on('loaded', function() {
-			if (!done && _areLoaded(m)) {
+			if (!d && _r(m)) {
 				f();
-				done = true;
+				d = true;
 			}
 		});
 		return Me;
 	};
-	// set listener
-	Me.on = function(type, f) {
-		_listeners[type].push(f);
-	};
-	// fire event
-	Me.fire = function(type, o) {
-		var l = _listeners[type].length;
-		for (var i=0; i < l; i++) {
-			_listeners[type][i](o);
-		}
+	// set listener (type, callback)
+	Me.on = function(t, f) {
+		_l[t].push(f);
 	};
 	return Me;
 })(document);

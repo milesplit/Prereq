@@ -2,13 +2,13 @@
 <head>
 <script src="prereq.js"></script>
 <script>
-Prereq.add(
-	{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' }
-).after('jquery', function() {
-	$(document).ready(function() {
-		$('p').html('loaded jquery');
+Prereq
+	.add('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
+	.after('jquery', function() {
+		$(document).ready(function() {
+			$('p').html('loaded jquery');
+		});
 	});
-});
 </script>
 </head>
 <body>
