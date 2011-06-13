@@ -21,7 +21,7 @@ This project is NOT done.. it is NOT tested.. it is in its very very early stage
 Example use
 -------
 
-
+```javascript
 Prereq.add(
 
 		{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' },
@@ -35,17 +35,17 @@ Prereq.add(
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
 
 	});
-
+```
 
 NOW LET'S DEFINE some-other-file.js
 
-
+```javascript
 Prereq.after(['jquery', 'facebook'], function() {
 
 ........... define your custom code however you normally would ......
 
 });
-
+```
 
 Explaination
 -------
@@ -65,7 +65,4 @@ it will set the appropriate listeners.
 Next?
 -------
 
-Next... I go to sleep. I'm not sure where this will go. If I will just give it up and go with yepnope 
-or something or if I'll still think this is a good idea to pursue in the morning.
-
-Goodnight!
+....
