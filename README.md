@@ -57,3 +57,14 @@ Next?
 -------
 
 I'd like to be able have the url passed via add be an array so that you can provide fallback URLs. Will probably need to set a timeout for this to consider the first one failed.
+
+Credit
+-------
+
+Thank you for inspiration and ideas to these great similar projects:
+
+* YepNope - yepnopejs.com
+* LabJS - labjs.com
+* RequireJS - requirejs.org
+* HeadJS - headjs.com
+
