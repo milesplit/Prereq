@@ -1,0 +1,18 @@
+<html>
+<head>
+<script src="prereq.js"></script>
+<script>
+Prereq.add(
+	{ name:'jquery', url:'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' }
+).after('jquery', function() {
+	$(document).ready(function() {
+		$('p').html('loaded jquery');
+	});
+});
+</script>
+</head>
+<body>
+<h1>Prereq</h1>
+<p>Blah blah blah...</p>
+</body>
+</html>

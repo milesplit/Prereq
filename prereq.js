@@ -24,9 +24,12 @@ var Prereq = (function(d) {
 		_q[k][t] = true;
 		Me.fire(t, { type:t, name:k, url:_q[k].url });
 	};
+	var isArray = function(o) {
+  		return Object.prototype.toString.call(o) === '[object Array]';
+	};
 	// does the action of adding the script
 	var _load = function(k) {
-		_fire(k, 'loeading');
+		_fire(k, 'loading');
 		if (_q[k].url) {
 			var s = d.createElement('script');
 			s.src=_q[k].url;
@@ -46,8 +49,9 @@ var Prereq = (function(d) {
 	// tests if a list of requirements are done loading
 	var _areLoaded = function(list) {
 		var done = true;
-		if ('length' in list) {
+		if (isArray(list)) {
 			for (var i=0; i < list.length; i++) {
+				console.log(list[i]);
 				if (!_q[list[i]].loaded) {
 					done = false
 					break;
@@ -59,13 +63,13 @@ var Prereq = (function(d) {
 		return done;
 	};
 	// adds requirements to load queue
-	Me.add = function(a) {
-		var l = a.length;
+	Me.add = function() {
+		var l = arguments.length;
 		for (var i=0; i < l; i++) {
-			var o = a[i];
+			var o = arguments[i];
 			if (!o.name) o.name=i;
 			if (!_q[o.name]) {
-				_q[o.name] = { name:o.name, url.o.url, loading:false, loaded:false };
+				_q[o.name] = { name:o.name, url:o.url, loading:false, loaded:false };
 				_load(o.name);
 			}
 		}
