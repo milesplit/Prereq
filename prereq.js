@@ -4,6 +4,7 @@
 //
 // by
 // Jason Byrne - @jasonbyrne - jbyrne[at]milesplit.com
+// Alan Szlosek - aszlosek[a]milesplit.com
 //
 // http://github.com/milesplit/Prereq
 //
@@ -17,71 +18,78 @@ var Prereq = (function(d) {
 	// Private variables
 	var Me = this,	// self-reference
 		_q = {},	// queue of scripts
-		_l = { loading:[], loaded:[] },	// listeners
+		_l = [],	// listeners
 		_h = d.head || d.getElementsByTagName('head')[0];	// head
-	// Private: Fire Event (n=queue name, t=event type)
-	var _f = function(n, t) {
+	// Private: Fire Event (n=queue name)
+	var _f = function(n) {
+		console.log('done: ' + n);
 		// Mark it in the queue
-		_q[n][t] = true;
+		_q[n].loaded = true;
 		// Loop through and call any listeners
-		var l = _l[t].length;
-		for (var i=0; i < l; i++) {
+		var i = 0;
+		while (i < _l.length) {
 			// callback to event subscriber
-			_l[t][i]({ type:t, name:n, url:_q[n].url });
+			if ( _l[i]() ) { // if the callback returns true, remove it
+				_l.splice(i, 1);
+				
+			} else i++;
 		}
 	};
 	// is array?
 	var _a = function(o) {
   		return {}.toString.call(o) == '[object Array]';
 	};
+	// exists in q?
+	var _e = function(n) {
+		return (n in _q);
+	};
 	// Ready? (n: array or name string)
 	var _r = function(n) {
 		var d = true; // done? has loaded all scripts in n
-		if (_a(n)) {
-			// If n is an array then loop through it to check if done with each
-			for (var i=0; i < n.length; i++) {
-				if (!_q[n[i]].loaded) {
-					// not done with this one so set d to false and end loop
-					d = false
-					break;
-				}
+		// make n an array, if it's not already
+		if (!_a(n)) n = [n];
+		// loop through it to check if done with each
+		for (var i=0; i < n.length; i++) {
+			if (!Me.isLoaded(n[i])) {
+				d = false;
+				break;
 			}
-		} else if (!_q[n].loaded) {
-			// not done with this one so set d to false
-			d = false;
 		}
 		// return done status
 		return d;
 	};
 	// Add a script to queue
 	// Overloaded... a only then a is a string url, a and b then a is the name and b is the url
-	Me.add = function(a, b) {
+	Me.add = function(a, b, c) {
 		// adjust for overloading if name was set or not
 		if (!b) {
 			b=a;
 			a=_q.length;  // no name was set so we just need to give it a name, set it to its array position
 		}
 		// at this point a is always name and b is always url
-		_q[a] = { name:a, url:b, loading:false, loaded:false };  // add it to the queue
-		_f(a, 'loading');  // fire event that it is in the process of loading
-		if (b) {
+		_q[a] = { name:a, url:b, loaded:false };  // add it to the queue
+		if (c) {
+			console.log('waiting: ' + b);
+			Me.after(c, function() { Me.add(a, b); });
+		} else if (b) {
+			console.log('loading: ' + b);
 			// create script element
 			var s = d.createElement('script');
 			s.src=b;
 			s.type='text/javascript';
-			s.async='async';
+			s.async=true;
 			// set up listener for when it's loaded
 			s.onload = s.onreadystatechange = function() {
 				if (!s.readyState || /loaded|complete/.test(s.readyState)) {
 					s.onload = s.onreadystatechange = null;
-					_f(a, 'loaded');
+					_f(a);
 				}
 			}
 			// add it to the end of the document head
 			_h.appendChild(s);
 		} else {
 			// in some cases we may set the url to null and we'll just fire loaded right away
-			_f(a, 'loaded');
+			_f(a);
 		}
 		// return self reference as always for chaining
 		return Me;
@@ -95,24 +103,24 @@ var Prereq = (function(d) {
 			f();
 			return Me;
 		}
-		// it is not ready yet, so lets set up a listener for when it's done
-		var d = false;
 		// this will fire any time a new script loads
-		Me.on('loaded', function() {
+		_l.push(function() {
 			// when a new script has loaded, let's check if we're done with all our prereqs
-			if (!d && _r(n)) {
-				f();
-				d = true; // this will stop it from firing again
+			if (_r(n)) {
+				f(); // callback
+				return true; // return true to tell _l loop to remove this callback
 			}
-		});
+			return false;
+		}); // the _l loop passes in a param, which we're not currently passing along
 		// return self reference as always for chaining
 		return Me;
 	};
-	// set listener (type, callback)
-	Me.on = function(t, f) {
-		// add it to our listener array
-		_l[t].push(f);
-	};
+	// check if it has loaded
+	Me.isLoaded = function(n) {
+		if (!_e(n)) return false;
+		else if (!_q[n].loaded) return false;
+		else return true;
+	}
 	// return self
 	return Me;
 })(document);

@@ -7,7 +7,7 @@ Why?
 -------
 
 I looked at a lot of the ones out there. And I really like pieces of them, but I just don't like the whole thing. I either
-think the syntax is convoluted and overly complex or they try to do too many things or whatever.
+think the syntax is convoluted and overly complex or they try to do too many things.
 
 The goal of this project is to be simple all the way around...
 
@@ -26,6 +26,7 @@ Example use
 Prereq
 	.add('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
 	.add('facebook', 'http://connect.facebook.net/en_US/all.js')
+	.add('jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js', 'jquery')
 	.add('/js/some-other-file.js')
 	.after('facebook', function() {
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
@@ -43,15 +44,55 @@ Prereq.after(['jquery', 'facebook'], function() {
 });
 ```
 
-Explaination
+Code Explaination
 -------
 
-The add method will load all of the scripts as script elements and therefore execute right away, but through event listeners
-(both inline in our main file and also in our js files with prereqs) we can prevent the meat of the code from executing until the prereqisites are done loading.
+Again the goal is to be clear and simple. The code really speaks for itself for the most part. You define the scripts needed (with the add method),
+optionally with aliases, and then you can define dependencies with the after method (either in the main file or in an external js) or inline as
+the third argument to add.
 
-We provide modules that have dependencies with names... so that we can easily refer to them by that  name to make sure they have loaded.
+Public Methods
+-------
 
-The after method will check if its loaded and if so immediately hit the callback or otherwise it will set the appropriate listeners.
+**add(url)**
+
+url (string) - URL of the script.
+
+Give it simply a URL and it will be un-aliased and will load the script immediately. This is appropriate for simple use where it has no dependencies.
+
+**add(name, url)**
+
+name (string) - Alias to give this script, which should be unique.
+
+url (string) - URL of the script.
+
+Give the script an alias that we can use to refer to it later. The script will load immediately.
+
+**add(name, url, prerequisites)**
+
+name (string) - Alias to give this script, which should be unique.
+
+url (string) - URL of the script.
+
+prerequisites (string or array) - The name of the script this depends on or an array of strings of names if multiple dependencies.
+
+At this time, this is the same thing as including scripts in an after tag. It will not load them until its prerequisits are loaded. What I'd like to update this
+to do in the future is load the scripts into an img tag so that they are cached, just not executed. And then execute them once the dependencies load. That would
+be equivalent of loading the script with Prereq.after within the script itself (as shown in the example above). So this is useful if you do not have control
+over the scripts to insert Prereq.after in the external script or it is inpractical to do so. It makes for nice, clean code of inline dependencies.
+
+**after(prerequisites, callback)**
+
+prerequisites (string or array) - What the callback needs to load.
+
+callback (function) - Code to call once prerequisites are done. If they are already done when this is called then it will fire immediately.
+
+**isLoaded(name)**
+
+name (string) - Name of a module to check if it has yet loaded.
+
+This was originally a private method, but we decided it could be useful externally. Maybe we should update this to accept an array also.
+
 
 Next?
 -------
