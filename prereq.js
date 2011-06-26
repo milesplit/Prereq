@@ -22,7 +22,6 @@ var Prereq = (function(d) {
 		_h = d.head || d.getElementsByTagName('head')[0];	// head
 	// Private: Fire Event (n=queue name)
 	var _f = function(n) {
-		console.log('done: ' + n);
 		// Mark it in the queue
 		_q[n].loaded = true;
 		// Loop through and call any listeners
@@ -69,10 +68,8 @@ var Prereq = (function(d) {
 		// at this point a is always name and b is always url
 		_q[a] = { name:a, url:b, loaded:false };  // add it to the queue
 		if (c) {
-			console.log('waiting: ' + b);
 			Me.after(c, function() { Me.add(a, b); });
 		} else if (b) {
-			console.log('loading: ' + b);
 			// create script element
 			var s = d.createElement('script');
 			s.src=b;
@@ -115,6 +112,16 @@ var Prereq = (function(d) {
 		// return self reference as always for chaining
 		return Me;
 	};
+	// Add a css file (no callbacks)
+	Me.css = function(a) {
+		var s = d.createElement('link');
+		s.type = 'text/css';
+		s.rel = 'stylesheet';
+		s.href = a;
+		_h.appendChild(s);
+		// return self reference as always for chaining
+		return Me;
+	}
 	// check if it has loaded
 	Me.isLoaded = function(n) {
 		if (!_e(n)) return false;

@@ -93,6 +93,11 @@ name (string) - Name of a module to check if it has yet loaded.
 
 This was originally a private method, but we decided it could be useful externally. Maybe we should update this to accept an array also.
 
+**css(url)**
+
+url (string) - URL of the stylesheet.
+
+No callbacks or queues. Just include a stylesheet dynamically.
 
 Next?
 -------
