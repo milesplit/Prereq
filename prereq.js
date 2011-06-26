@@ -30,8 +30,7 @@ var Prereq = (function(d) {
 			// callback to event subscriber
 			if ( _l[i]() ) { // if the callback returns true, remove it
 				_l.splice(i, 1);
-				
-			} else i++;
+			} else { i++; }
 		}
 	};
 	// is array?
@@ -46,7 +45,7 @@ var Prereq = (function(d) {
 	var _r = function(n) {
 		var d = true; // done? has loaded all scripts in n
 		// make n an array, if it's not already
-		if (!_a(n)) n = [n];
+		if (!_a(n)) { n = [n]; }
 		// loop through it to check if done with each
 		for (var i=0; i < n.length; i++) {
 			if (!Me.isLoaded(n[i])) {
@@ -73,15 +72,14 @@ var Prereq = (function(d) {
 			// create script element
 			var s = d.createElement('script');
 			s.src=b;
-			s.type='text/javascript';
 			s.async=true;
 			// set up listener for when it's loaded
 			s.onload = s.onreadystatechange = function() {
-				if (!s.readyState || /loaded|complete/.test(s.readyState)) {
+				if (!s.readyState || (/loaded|complete/).test(s.readyState)) {
 					s.onload = s.onreadystatechange = null;
 					_f(a);
 				}
-			}
+			};
 			// add it to the end of the document head
 			_h.appendChild(s);
 		} else {
@@ -90,7 +88,7 @@ var Prereq = (function(d) {
 		}
 		// return self reference as always for chaining
 		return Me;
-	}
+	};
 	// Either fire callback right away if all are done or set a listener to wait
 	// n can be a string name for a single check or an array for checking if multiple prereqs needed
 	Me.after = function(n, f) {
@@ -115,19 +113,18 @@ var Prereq = (function(d) {
 	// Add a css file (no callbacks)
 	Me.css = function(a) {
 		var s = d.createElement('link');
-		s.type = 'text/css';
 		s.rel = 'stylesheet';
 		s.href = a;
 		_h.appendChild(s);
 		// return self reference as always for chaining
 		return Me;
-	}
+	};
 	// check if it has loaded
 	Me.isLoaded = function(n) {
-		if (!_e(n)) return false;
-		else if (!_q[n].loaded) return false;
-		else return true;
-	}
+		if (!_e(n)) { return false; }
+		else if (!_q[n].loaded) { return false; }
+		else { return true; }
+	};
 	// return self
 	return Me;
 })(document);
