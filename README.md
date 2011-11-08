@@ -64,7 +64,7 @@ Give it simply a URL and it will be un-aliased and will load the script immediat
 
 name (string) - Alias to give this script, which should be unique.
 
-url (string) - URL of the script.
+url (string) - URL of the script. You can pass in null if necessary, which comes in handy as a conditional sometimes to fire any afters.
 
 Give the script an alias that we can use to refer to it later. The script will load immediately.
 
@@ -81,17 +81,29 @@ to do in the future is load the scripts into an img tag so that they are cached,
 be equivalent of loading the script with Prereq.after within the script itself (as shown in the example above). So this is useful if you do not have control
 over the scripts to insert Prereq.after in the external script or it is inpractical to do so. It makes for nice, clean code of inline dependencies.
 
+**add(url, callback)**
+
+url (string) - URL of the script.
+
+callback (function) - Function will be called after it loads.
+
+**add(name, url, callback)**
+
+name (string) - Alias to give this script, which should be unique.
+
+url (string) - URL of the script.
+
+callback (function) - Function will be called after it loads.
+
 **after(prerequisites, callback)**
 
 prerequisites (string or array) - What the callback needs to load.
 
 callback (function) - Code to call once prerequisites are done. If they are already done when this is called then it will fire immediately.
 
-**isLoaded(name)**
+**loaded(name)**
 
-name (string) - Name of a module to check if it has yet loaded.
-
-This was originally a private method, but we decided it could be useful externally. Maybe we should update this to accept an array also.
+name (string) - Name of a module to check if it has yet loaded. If script was not aliased, ask if the URL was loaded.
 
 **css(url)**
 
