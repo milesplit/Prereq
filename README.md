@@ -18,17 +18,26 @@ The goal of this project is to be simple all the way around...
 * Be able to define the requirements in the external js file... for more modularization
 * Don't get sucked into trying to support every old browser known to man. If they're still using IE5 or Netscape they are used to sites not working.
 * Keep it as small as possible.
+* CommonJS-like.
+
+
+Version 1.1 - Change to CommonJS Type Syntax
+-------
+
+This version marks a huge change and will BREAK any old scripts. We killed the add and after methods and went with just require for both.
+
+Also totally re-did the inner workings to make it more like an internal pubsub system.
 
 Example use
 -------
 
 ```javascript
 Prereq
-	.add('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
-	.add('facebook', 'http://connect.facebook.net/en_US/all.js')
-	.add('jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js', 'jquery')
-	.add('/js/some-other-file.js')
-	.after('facebook', function() {
+	.require('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
+	.require('facebook', 'http://connect.facebook.net/en_US/all.js')
+	.require('jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js', 'jquery')
+	.require('/js/some-other-file.js')
+	.require('facebook', function() {
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
 	});
 ```
@@ -36,7 +45,7 @@ Prereq
 NOW LET'S DEFINE some-other-file.js
 
 ```javascript
-Prereq.after(['jquery', 'facebook'], function() {
+Prereq.require(['jquery', 'facebook'], function() {
 
 ........... define your custom code however you normally would ......
 ...... we know facebook and jquery have loaded now ....
@@ -54,13 +63,13 @@ the third argument to add.
 Public Methods
 -------
 
-**add(url)**
+**require(url)**
 
 url (string) - URL of the script.
 
 Give it simply a URL and it will be un-aliased and will load the script immediately. This is appropriate for simple use where it has no dependencies.
 
-**add(name, url)**
+**require(name, url)**
 
 name (string) - Alias to give this script, which should be unique.
 
@@ -68,7 +77,7 @@ url (string) - URL of the script. You can pass in null if necessary, which comes
 
 Give the script an alias that we can use to refer to it later. The script will load immediately.
 
-**add(name, url, prerequisites)**
+**require(name, url, prerequisites)**
 
 name (string) - Alias to give this script, which should be unique.
 
@@ -81,13 +90,13 @@ to do in the future is load the scripts into an img tag so that they are cached,
 be equivalent of loading the script with Prereq.after within the script itself (as shown in the example above). So this is useful if you do not have control
 over the scripts to insert Prereq.after in the external script or it is inpractical to do so. It makes for nice, clean code of inline dependencies.
 
-**add(url, callback)**
+**require(url, callback)**
 
 url (string) - URL of the script.
 
 callback (function) - Function will be called after it loads.
 
-**add(name, url, callback)**
+**require(name, url, callback)**
 
 name (string) - Alias to give this script, which should be unique.
 
@@ -95,7 +104,7 @@ url (string) - URL of the script.
 
 callback (function) - Function will be called after it loads.
 
-**after(prerequisites, callback)**
+**require(prerequisites, callback)**
 
 prerequisites (string or array) - What the callback needs to load.
 
@@ -105,16 +114,21 @@ callback (function) - Code to call once prerequisites are done. If they are alre
 
 name (string) - Name of a module to check if it has yet loaded. If script was not aliased, ask if the URL was loaded.
 
-**css(url)**
+**loaded()**
 
-url (string) - URL of the stylesheet.
+No arguments returns all scripts and their status.
 
-No callbacks or queues. Just include a stylesheet dynamically.
+**define(name, callback)**
 
-CommonJS Methods
+name (string) - Name of the module. Should usually be file name without the .js
+
+callback (function) - A wrapper for the code of your module.
+
+Add exports as the argument to this method and add to it for what you want to be returned your callback. This is like CommonJS. See below.
+
+
+CommonJS Type Usage
 -------
-
-I have the beginnings of some CommonJS like module code below... basic but works for using require and then defining the module with exports
 
 **require(name, callback)**
 

@@ -3,8 +3,7 @@
 <script src="prereq.js"></script>
 <script>
 Prereq
-	.add('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
-	.after('jquery', function() {
+	.require('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js', function() {
 		$(document).ready(function() {
 			$('p').html('loaded jquery');
 		});
