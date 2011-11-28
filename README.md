@@ -123,6 +123,7 @@ name (string) - name of the module
 callback (function) - function to call back once loaded
 
 Example:
+
 ```javascript
 
 Prereq.require('module', function(m){
