@@ -111,6 +111,42 @@ url (string) - URL of the stylesheet.
 
 No callbacks or queues. Just include a stylesheet dynamically.
 
+CommonJS Methods
+-------
+
+I have the beginnings of some CommonJS like module code below... basic but works for using require and then defining the module with exports
+
+**require(name, callback)**
+
+name (string) - name of the module
+
+callback (function) - function to call back once loaded
+
+Example:
+
+Prereq.require('module', function(m){
+	console.log(m);
+});
+
+**define(name, module)**
+
+name (string) - name of the module... should be same as file name without the .js
+
+module (function) - a closure function to define the module code
+
+This should add to the exports object for anything desired to be made available outside the module
+
+Example:
+
+Prereq.define('module', function(exports){
+	
+	exports.hello = {
+		world:true
+	};
+	
+});
+
+
 Next?
 -------
 

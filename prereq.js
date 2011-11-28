@@ -1,6 +1,6 @@
 /*prereq1.0|MIT*/
 // prereq.js
-// Version - 1.02
+// Version - 1.03
 //
 // by
 // Jason Byrne - @jasonbyrne - jbyrne[at]milesplit.com
@@ -20,8 +20,9 @@ var Prereq = (function(d) {
 		_q = {},	// queue of scripts
 		_l = [],	// listeners
 		_h = d.head || d.getElementsByTagName('head')[0],	// head
-		_a = function(o) { return {}.toString.call(o) == '[object Array]'; },
-		_f = function(o) { return (typeof o == 'function'); };
+		_a = function(o) { return {}.toString.call(o) == '[object Array]'; }, // test for array
+		_f = function(o) { return (typeof o == 'function'); }, // test for function
+		_js = /\.js$/; // regex for ending .js
 	// Publish (n=queue name)
 	var _p = function(n) {
 		if (_q[n]) {
@@ -63,7 +64,7 @@ var Prereq = (function(d) {
 	Me.add = function(a, b, c) {
 		// initialize
 		var l = arguments.length, o = { n:a, u:a, l:false, c:function(){}, a:[] };
-		// handle overloding
+		// handle overloading
 		if (l > 2) {
 			o.u=b;
 			if (_f(c)) {
@@ -79,6 +80,9 @@ var Prereq = (function(d) {
 				o.u=b;
 			}
 		}
+		// normalize
+		o.u = _js.test(o.u) ? o.u : o.u+'.js';
+		o.n = o.n.replace(_js, '');
 		// load script
 		Me.after(o.a, function() {
 			_s(o);
@@ -129,6 +133,21 @@ var Prereq = (function(d) {
 			}
 		}
 		return true;
+	};
+	// CommonJS like methods
+	Me.define = function(n,f){
+		var e = {};
+		f(e);
+		_q[n].d = e;
+		return Me;
+	};
+	Me.require = function(n,c){
+		_q[n]=_q[n]||{};
+		var c=c||function(){},m=_q[n].d;
+		m ? c(m) : Me.add(n).after(n, function(){
+			c(_q[n].d);
+		});
+		return Me;
 	};
 	// return self
 	return Me;
