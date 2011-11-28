@@ -122,14 +122,11 @@ name (string) - name of the module
 
 callback (function) - function to call back once loaded
 
-Example:
 
 ```javascript
-
 Prereq.require('module', function(m){
 	console.log(m);
 });
-
 ```
 
 **define(name, module)**
@@ -140,10 +137,7 @@ module (function) - a closure function to define the module code
 
 This should add to the exports object for anything desired to be made available outside the module
 
-Example:
-
 ```javascript
-
 Prereq.define('module', function(exports){
 	
 	exports.hello = {
@@ -151,7 +145,6 @@ Prereq.define('module', function(exports){
 	};
 	
 });
-
 ```
 
 Next?
