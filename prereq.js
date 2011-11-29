@@ -18,6 +18,7 @@ var Prereq = (function(d) {
 	// Private variables
 	var Me = {},	// self-reference
 		t=true,f=false,
+		_last, // last module
 		_scriptQ = {},	// queue of scripts
 		_subscriptions = {},	// subscriptions 
 		_head = d.head || d.getElementsByTagName('head')[0],	// head
@@ -39,9 +40,6 @@ var Prereq = (function(d) {
 			}
 			// unsubscribe all
 			_subscriptions[name] = [];
-		}, _subscribe = function(name, callback) {
-			_subscriptions[name] = _subscriptions[name] || [];
-			_subscriptions[name].push(callback);
 		},
 		// Add to queue
 		_qModule = function(name, path) {
@@ -52,7 +50,7 @@ var Prereq = (function(d) {
 				for (var i=0; i < path.length; i++) {
 					// listen for this to complete
 					if (path[i] != name) {
-						_subscribe(path[i], function(){
+						Me.subscribe(path[i], function(){
 							if (Me.loaded(path)) {
 								_publish(name);
 							}
@@ -70,6 +68,7 @@ var Prereq = (function(d) {
 			var script = d.createElement('script');
 			script.src = path;
 			script.async = t;
+			script.id = '_' + name;
 			// add it to queue
 			_scriptQ[name] = { n:name, u:path, l:f, e:{} };
 			// listen for loaded
@@ -86,13 +85,12 @@ var Prereq = (function(d) {
 		};
 	// Require
 	Me.require = function(a, b, c) {
-		var len = arguments.length,
-			name = [],	// this will start as an array, but will be concatenated
+		var name = [],	// this will start as an array, but will be concatenated
 			path = [],
 			callback = _functionize(c),
 			deps = [];
 		// handle overloading
-		if (len == 2) {
+		if (arguments.length == 2) {
 			_isFunction(b) ? (callback = b) : (deps = _isArray(b) ? b : _arrayify(b));
 		}
 		// normalize
@@ -114,14 +112,33 @@ var Prereq = (function(d) {
 				callback(_scriptQ[name].e);
 			} else {
 				// once it loads, hit callback
-				_subscribe(name, callback);
+				Me.subscribe(name, callback);
 				// put it in the queue if it's not already
 				_qModule(name, path);
 			}
 		};
 		// dependencies loaded
 		Me.loaded(deps) ? ready() : Me.require(deps, ready);
+		_last = name;
 		return Me;
+	};
+	// failover option
+	Me.failover = function(url, timeout) {
+		// recall last module referenced by require
+		var module = _scriptQ[_last], timeout = (timeout > 0) ? timeout : 5000; // default timeout is 5 seconds
+		if (module) {
+			// Set timer for when to go to failover
+			var timer = setTimeout(function(){
+				// remove old script tag from head
+				_head.removeChild(d.getElementById('_' + _last));
+				// add new script tag
+				_includeScript(_last, url);
+			}, timeout);
+			// If it does load, then kill timer
+			Me.subscribe(_last, function(){
+				clearTimeout(timer);
+			});
+		}
 	};
 	// loaded?
 	Me.loaded = function(moduleNames) {
@@ -137,6 +154,11 @@ var Prereq = (function(d) {
 			}
 		}
 		return (moduleNames.length == 0) ? _scriptQ : t;
+	};
+	// Pubsub subscribe... decided to make public on Alan's suggestion, easy enough
+	Me.subscribe = function(name, callback) {
+		_subscriptions[name] = _subscriptions[name] || [];
+		_subscriptions[name].push(callback);
 	};
 	// CommonJS type module definition
 	Me.define = function(name, b, c){
