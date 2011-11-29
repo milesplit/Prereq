@@ -21,13 +21,16 @@ var Prereq = (function(d) {
 		_last, // last module
 		_scriptQ = {},	// queue of scripts
 		_subscriptions = {},	// subscriptions 
-		_head = d.head || d.getElementsByTagName('head')[0],	// head
 		_isArray = function(o) { return {}.toString.call(o) == '[object Array]' }, // test for array
 		_isFunction = function(o) { return (typeof o == 'function') }, // test for function
 		_isObject = function(o) { return o instanceof Object }, // test for function
 		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : []; },
 		_functionize = function(a) { return (_isFunction(a)) ? a : function(){}; },
+		_tag = (function(){	var scripts = d.getElementsByTagName('script'); return scripts[scripts.length-1] })(),
+		_baseDir = (function(){ return _tag ? _tag.getAttribute('data-main') || '' : '' })(),
+		_head = d.head || d.getElementsByTagName('head')[0], // head
 		_js = /\.js$/, // regex for ending .js
+		_sep = '_',
 		// Small pubsub
 		_publish = function(name) {
 			// make sure subscription is initialized
@@ -63,17 +66,19 @@ var Prereq = (function(d) {
 		},
 		// include script and publish event once loaded
 		_includeScript = function(name, path) {
-			var path = (path || name), path = _js.test(path) ? path : path + '.js';
+			var path = (path || name), path = _js.test(path) ? path : path + '.js',
+				path = (path.charAt(0) === '/' || path.match(/^\w+:/) ? '' : _baseDir) + path;
 			// create script element
 			var script = d.createElement('script');
 			script.src = path;
 			script.async = t;
-			script.id = '_' + name;
+			script.id = _sep + name;
 			// add it to queue
 			_scriptQ[name] = { n:name, u:path, l:f, e:{} };
 			// listen for loaded
 			script.onload = script.onreadystatechange = function() {
-				if (!script.readyState || (/loaded|complete/).test(script.readyState)) {
+				var rs = script.readyState;
+				if (!rs || (/loaded|complete/).test(rs)) {
 					// kill onload listener
 					script.onload = script.onreadystatechange = null;
 					// loaded
@@ -99,10 +104,10 @@ var Prereq = (function(d) {
 				name.push(k);
 				_isArray(a[k]) ? (path = path.concat(a[k])) : path.push(a[k]);
 			}
-			name = name.join('-');
+			name = name.join(_sep);
 		} else {
 			path = _arrayify(a);
-			name = path.join('-').replace(_js, '');
+			name = path.join(_sep).replace(_js, '');
 		}
 		// once loaded
 		var ready = function(){
@@ -130,7 +135,7 @@ var Prereq = (function(d) {
 			// Set timer for when to go to failover
 			var timer = setTimeout(function(){
 				// remove old script tag from head
-				_head.removeChild(d.getElementById('_' + _last));
+				_head.removeChild(d.getElementById(_sep + _last));
 				// add new script tag
 				_includeScript(_last, url);
 			}, timeout);

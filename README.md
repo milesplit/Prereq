@@ -6,20 +6,18 @@ Yes, another JavaScript loader. I know, I know.
 Why?
 -------
 
-I looked at a lot of the ones out there. And I really like pieces of them, but I just don't like the whole thing. I either
-think the syntax is convoluted and overly complex or they try to do too many things.
+We looked at a lot of the ones out there. And really liked pieces of them, but we just didn't like the whole thing. Either
+the syntax is convoluted and overly complex or they try to do too many things.
 
 The goal of this project is to be simple all the way around...
 
-* Focused in its purpose: don't get sucked into doing more than just loading scripts.
-* Event based
-* Simple syntax handing for dependencies and callbacks
-* Load all scripts right away (with some exceptions)
-* Be able to define the requirements in the external js file... for more modularization
-* Don't get sucked into trying to support every old browser known to man. If they're still using IE5 or Netscape they are used to sites not working.
-* Keep it as small as possible.
-* CommonJS-like.
-
+* Focused in its purpose: don't get sucked into doing more than just loading scripts or trying to support ancient browsers. Prereq actively supports Chrome, Firefox, Safari, Opera, IE7+, and common modern mobile browsers.
+* Speed and size. Keep it small under 2KB minified.
+* Use simple syntax that supports dependencies, callbacks, and failover scripts.
+* Asynchronous and micro-pubsub based.
+* Support modules with CommonJS-ish syntax and dependencies defined in module.
+* Independent from any other libraries.
+* jQuery-like method chaining.
 
 Version 1.1 - Change to CommonJS Type Syntax
 -------
@@ -31,24 +29,33 @@ Also totally re-did the inner workings to make it more like an internal pubsub s
 Example use
 -------
 
-```javascript
+```html
+<script data-main="js/" src="js/prereq.js"></script>
+<script>
 Prereq
-	.require('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js')
-	.require('facebook', 'http://connect.facebook.net/en_US/all.js')
-	.require('jqueryui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js', 'jquery')
-	.require('/js/some-other-file.js')
-	.require('facebook', function() {
+	.require({ jquery: 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js' })
+	.failover('/js/jquery.min.js')
+	.require({ facebook: 'http://connect.facebook.net/en_US/all.js' })
+	.require('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js', 'jquery')
+	.require('module', function(m){
+		// this script loaded
+		alert(m.message);
+	})
+	.subscribe('facebook', function() {
 		FB.init({appId: 'YOUR APP KEY', status: true, cookie: true, xfbml: true});
 	});
+</script>
 ```
 
-NOW LET'S DEFINE some-other-file.js
+NOW LET'S DEFINE js/module.js
 
 ```javascript
-Prereq.require(['jquery', 'facebook'], function() {
+Prereq.define('module', ['jquery', 'facebook'], function(exports) {
 
 ........... define your custom code however you normally would ......
 ...... we know facebook and jquery have loaded now ....
+
+	exports.message = 'Hello World';
 
 });
 ```
@@ -56,115 +63,66 @@ Prereq.require(['jquery', 'facebook'], function() {
 Code Explaination
 -------
 
-Again the goal is to be clear and simple. The code really speaks for itself for the most part. You define the scripts needed (with the add method),
-optionally with aliases, and then you can define dependencies with the after method (either in the main file or in an external js) or inline as
-the third argument to add.
+Again the goal is to be clear and simple. The code really speaks for itself for the most part. You define the scripts needed (with the require method),
+optionally with aliases, and then you can optionally define dependencies as the second argument to the require or define methods (either in the main file or in an external js).
 
 Public Methods
 -------
 
-**require(url)**
+**require(scriptsToLoad[, dependencies][, callback])**
 
-url (string) - URL of the script.
+ARGUMENTS:
 
-Give it simply a URL and it will be un-aliased and will load the script immediately. This is appropriate for simple use where it has no dependencies.
+scriptsToLoad (required)
 
-**require(name, url)**
+Always the first argument.
 
-name (string) - Alias to give this script, which should be unique.
+* (string) - Just pass in a string for the URL, path or module name;
+* (array) - Pass in an array of one or more strings of URLs, paths, or module names.
+* (object) - Pass in an object with alias keys and string or array values.
 
-url (string) - URL of the script. You can pass in null if necessary, which comes in handy as a conditional sometimes to fire any afters.
+dependencies (optional)
 
-Give the script an alias that we can use to refer to it later. The script will load immediately.
+If present this will always be the second argument.
 
-**require(name, url, prerequisites)**
+* (string) - For a single dependency you can just pass in the URL, path, or module name.
+* (array) - For multiple dependencies, pass in an array of strings.
 
-name (string) - Alias to give this script, which should be unique.
+callback (optional)
 
-url (string) - URL of the script.
+If present this will be either the second or third argument, but always the last one.
 
-prerequisites (string or array) - The name of the script this depends on or an array of strings of names if multiple dependencies.
+* (function) - Call back function once loaded.
 
-At this time, this is the same thing as including scripts in an after tag. It will not load them until its prerequisits are loaded. What I'd like to update this
-to do in the future is load the scripts into an img tag so that they are cached, just not executed. And then execute them once the dependencies load. That would
-be equivalent of loading the script with Prereq.after within the script itself (as shown in the example above). So this is useful if you do not have control
-over the scripts to insert Prereq.after in the external script or it is inpractical to do so. It makes for nice, clean code of inline dependencies.
 
-**require(url, callback)**
+**loaded(scriptsToTest)**
 
-url (string) - URL of the script.
-
-callback (function) - Function will be called after it loads.
-
-**require(name, url, callback)**
-
-name (string) - Alias to give this script, which should be unique.
-
-url (string) - URL of the script.
-
-callback (function) - Function will be called after it loads.
-
-**require(prerequisites, callback)**
-
-prerequisites (string or array) - What the callback needs to load.
-
-callback (function) - Code to call once prerequisites are done. If they are already done when this is called then it will fire immediately.
-
-**loaded(name)**
-
-name (string) - Name of a module to check if it has yet loaded. If script was not aliased, ask if the URL was loaded.
+scriptsToTest - String or array of strings with URL, path, or module names.
 
 **loaded()**
 
 No arguments returns all scripts and their status.
 
-**define(name, callback)**
+**define(name[, dependencies], callback)**
 
 name (string) - Name of the module. Should usually be file name without the .js
 
-callback (function) - A wrapper for the code of your module.
+dependencies - String or array of strings.
 
-Add exports as the argument to this method and add to it for what you want to be returned your callback. This is like CommonJS. See below.
+callback (function) - Required. A wrapper for the code of your module. If present, either second or third argument but always last. Add exports as the argument to this method and add to it for what you want to be returned your callback. This is like CommonJS.
 
+**subscribe(name, callback)**
 
-CommonJS Type Usage
--------
+Allows you to listen in on the internal pubsub to see when something loads.
 
-**require(name, callback)**
+**failover(url[, timeout])**
 
-name (string) - name of the module
+Provide an alternate URL for the module previously referenced by require.
 
-callback (function) - function to call back once loaded
+url - String of URL, path or module name.
 
+timeout - Optional. Integer in milliseconds. Default is 5000 (five seconds).
 
-```javascript
-Prereq.require('module', function(m){
-	console.log(m);
-});
-```
-
-**define(name, module)**
-
-name (string) - name of the module... should be same as file name without the .js
-
-module (function) - a closure function to define the module code
-
-This should add to the exports object for anything desired to be made available outside the module
-
-```javascript
-Prereq.define('module', function(exports){
-	
-	exports.hello = {
-		world:true
-	};
-	
-});
-```
-
-Next?
--------
-
-I'd like to be able have the url passed via add be an array so that you can provide fallback URLs. Will probably need to set a timeout for this to consider the first one failed.
 
 Credit
 -------
