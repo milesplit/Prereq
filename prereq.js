@@ -24,8 +24,8 @@ var Prereq = (function(d) {
 		_isArray = function(o) { return {}.toString.call(o) == '[object Array]' }, // test for array
 		_isFunction = function(o) { return (typeof o == 'function') }, // test for function
 		_isObject = function(o) { return o instanceof Object }, // test for function
-		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : []; },
-		_functionize = function(a) { return (_isFunction(a)) ? a : function(){}; },
+		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : [] },
+		_functionize = function(a) { return (_isFunction(a)) ? a : function(){} },
 		_tag = (function(){	var scripts = d.getElementsByTagName('script'); return scripts[scripts.length-1] })(),
 		_baseDir = (function(){ return _tag ? _tag.getAttribute('data-main') || '' : '' })(),
 		_head = d.head || d.getElementsByTagName('head')[0], // head
@@ -52,13 +52,10 @@ var Prereq = (function(d) {
 				// Loop through array and add each
 				for (var i=0; i < path.length; i++) {
 					// listen for this to complete
-					if (path[i] != name) {
+					(path[i] != name) &&
 						Me.subscribe(path[i], function(){
-							if (Me.loaded(path)) {
-								_publish(name);
-							}
+							Me.loaded(path) && _publish(name);
 						});
-					}
 					// load it
 					_includeScript(path[i], path[i]);
 				}
@@ -95,9 +92,8 @@ var Prereq = (function(d) {
 			callback = _functionize(c),
 			deps = [];
 		// handle overloading
-		if (arguments.length == 2) {
+		(arguments.length == 2) &&
 			_isFunction(b) ? (callback = b) : (deps = _isArray(b) ? b : _arrayify(b));
-		}
 		// normalize
 		if (_isObject(a)) {
 			for (k in a) {
