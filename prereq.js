@@ -1,6 +1,6 @@
-/*prereq1.1|MIT*/
+/*prereq1.11|MIT*/
 // prereq.js
-// Version - 1.1
+// Version - 1.11
 //
 // by
 // Jason Byrne - @jasonbyrne - jbyrne[at]milesplit.com
@@ -19,10 +19,11 @@ var Prereq = (function(d) {
 	var Me = {},	// self-reference
 		t=true,f=false,
 		_scriptQ = {},	// queue of scripts
-		_subscriptions = {},	// subscriptions
+		_subscriptions = {},	// subscriptions 
 		_head = d.head || d.getElementsByTagName('head')[0],	// head
-		_isArray = function(o) { return {}.toString.call(o) == '[object Array]'; }, // test for array
-		_isFunction = function(o) { return (typeof o == 'function'); }, // test for function
+		_isArray = function(o) { return {}.toString.call(o) == '[object Array]' }, // test for array
+		_isFunction = function(o) { return (typeof o == 'function') }, // test for function
+		_isObject = function(o) { return o instanceof Object }, // test for function
 		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : []; },
 		_functionize = function(a) { return (_isFunction(a)) ? a : function(){}; },
 		_js = /\.js$/, // regex for ending .js
@@ -86,20 +87,25 @@ var Prereq = (function(d) {
 	// Require
 	Me.require = function(a, b, c) {
 		var len = arguments.length,
-			name = a,
-			path = a,
+			name = [],	// this will start as an array, but will be concatenated
+			path = [],
 			callback = _functionize(c),
 			deps = [];
 		// handle overloading
-		if (len == 2) {	// two arguments
-			_isFunction(b) ? (callback = b) : (path = b);
-		} else if (len > 2) {
-			path = b;
-			deps = _isFunction(c) ? [] : c;
+		if (len == 2) {
+			_isFunction(b) ? (callback = b) : (deps = _isArray(b) ? b : _arrayify(b));
 		}
 		// normalize
-		path = _arrayify(path);
-		name = _arrayify(name).join('-').replace(_js, '');
+		if (_isObject(a)) {
+			for (k in a) {
+				name.push(k);
+				_isArray(a[k]) ? (path = path.concat(a[k])) : path.push(a[k]);
+			}
+			name = name.join('-');
+		} else {
+			path = _arrayify(a);
+			name = path.join('-').replace(_js, '');
+		}
 		// once loaded
 		var ready = function(){
 			// done?
