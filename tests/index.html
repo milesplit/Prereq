@@ -24,11 +24,24 @@ $(document).ready(function() {
 	module('Basic Tests');
 	
 	asyncTest("Un-aliased URL", 1, function() {
-		var url;
-		url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
 		Prereq.require(url, function() {
 			var loaded = Prereq.loaded();
-			ok(url in loaded && loaded[url].l, 'URL has loaded');
+			ok(url in loaded && loaded[url].l, 'jQuery has loaded');
+			start(); // tells QUnit we're back from our async call and it can resume running through tests
+		});
+	});
+
+	asyncTest("Un-aliased URL and a dependency", 2, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		var url2 = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		Prereq.require(url, function() {
+			var loaded = Prereq.loaded();
+			ok(url in loaded && loaded[url].l, 'jQuery 1.4.4 loaded');
+		});
+		Prereq.require(url2, url, function() {
+			var loaded = Prereq.loaded();
+			ok(url2 in loaded && loaded[url2].l, 'jQuery 1.7.1 loaded, dependent upon 1.4.4');
 			start(); // tells QUnit we're back from our async call and it can resume running through tests
 		});
 	});
@@ -38,19 +51,19 @@ $(document).ready(function() {
 		Prereq.require({jquery:url}, function() {
 			var loaded = Prereq.loaded();
 			console.log(loaded);
-			ok( url in loaded, 'URL in loaded()');
+			ok( url in loaded, 'jQuery loaded');
 			start();
 		});
 	});
 
-	asyncTest("Aliased URL", 2, function() {
+	asyncTest("Array of un-aliased URLs", 2, function() {
 		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
 		var url2 = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
 		Prereq.require([url,url2], function() {
 			var loaded = Prereq.loaded();
 			console.log(loaded);
-			ok( url in loaded, 'URL in loaded()');
-			ok( url2 in loaded, 'URL in loaded()');
+			ok( url in loaded, 'jQuery 1.7.1 loaded');
+			ok( url2 in loaded, 'jQuery 1.4.4 loaded');
 			start();
 		});
 	});
@@ -66,12 +79,83 @@ $(document).ready(function() {
 			function() {
 				var loaded = Prereq.loaded();
 				console.log(loaded);
-				ok( url in loaded, 'URL in loaded()');
-				ok( url2 in loaded, 'URL in loaded()');
+				ok( url in loaded, 'jQuery 1.7.1 loaded');
+				ok( url2 in loaded, 'jQuery 1.4.4 loaded');
 				start();
 			}
 		);
 	});
+	
+	asyncTest("Chained dependencies", 3, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		var url2 = 'module.js';
+		var url3 = 'module2.js';
+		var url4 = 'module3.js';
+		var url5 = 'module4.js';
+		Prereq.require(
+			{jquery: url},
+			function() {
+				var loaded = Prereq.loaded();
+				ok( url in loaded, 'jQuery loaded');
+			}
+		);
+		Prereq.require(
+			{module: url2},
+			'jquery',
+			function() {
+				var loaded = Prereq.loaded();
+				ok( url2 in loaded, 'module.js loaded, dependent upon jQuery');
+
+			}
+		);
+		Prereq.require(
+			url3,
+			'module',
+			function() {
+				var loaded = Prereq.loaded();
+				console.log(loaded);
+				ok( url3 in loaded, 'module2.js loaded, dependent upon module');
+				start();
+			}
+		);
+	});
+	
+	asyncTest("Order should not matter", 3, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		var url2 = 'module.js';
+		var url3 = 'module2.js';
+		var url4 = 'module3.js';
+		var url5 = 'module4.js';
+
+		// ah, because jason is using deps and labels interchangable, it tries to be smart and load a dep label as a local file
+		Prereq.require(
+			{module: url2},
+			'jquery',
+			function() {
+				var loaded = Prereq.loaded();
+				ok( url2 in loaded, 'URL in loaded()');
+
+			}
+		);
+		Prereq.require(
+			{jquery: url},
+			function() {
+				var loaded = Prereq.loaded();
+				ok( url in loaded, 'jquery loaded');
+			}
+		);
+		Prereq.require(
+			url3,
+			'module',
+			function() {
+				var loaded = Prereq.loaded();
+				console.log(loaded);
+				ok( url3 in loaded, 'URL in loaded()');
+				start();
+			}
+		);
+	});
+
 
 
 	// Test loading of invalid URL
