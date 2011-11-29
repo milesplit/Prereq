@@ -25,9 +25,9 @@ var Prereq = (function(d) {
 		_isFunction = function(o) { return (typeof o == 'function'); }, // test for function
 		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : []; },
 		_functionize = function(a) { return (_isFunction(a)) ? a : function(){}; },
-		_js = /\.js$/; // regex for ending .js
-	// Small pubsub
-	var _publish = function(name) {
+		_js = /\.js$/, // regex for ending .js
+		// Small pubsub
+		_publish = function(name) {
 			// make sure subscription is initialized
 			_subscriptions[name] = _subscriptions[name] || [];
 			// mark as loaded
@@ -41,48 +41,48 @@ var Prereq = (function(d) {
 		}, _subscribe = function(name, callback) {
 			_subscriptions[name] = _subscriptions[name] || [];
 			_subscriptions[name].push(callback);
-		};
-	// Add to queue
-	var _qModule = function(name, path) {
-		if (!_scriptQ[name]) {
-			// add to queue ... n=name, u=array of urls, l=loaded?, e=exports (from module)
-			_scriptQ[name] = { n:name, u:path, l:f, e:{} };
-			// Loop through array and add each
-			for (var i=0; i < path.length; i++) {
-				// listen for this to complete
-				if (path[i] != name) {
-					_subscribe(path[i], function(){
-						if (Me.loaded(path)) {
-							_publish(name);
-						}
-					});
+		},
+		// Add to queue
+		_qModule = function(name, path) {
+			if (!_scriptQ[name]) {
+				// add to queue ... n=name, u=array of urls, l=loaded?, e=exports (from module)
+				_scriptQ[name] = { n:name, u:path, l:f, e:{} };
+				// Loop through array and add each
+				for (var i=0; i < path.length; i++) {
+					// listen for this to complete
+					if (path[i] != name) {
+						_subscribe(path[i], function(){
+							if (Me.loaded(path)) {
+								_publish(name);
+							}
+						});
+					}
+					// load it
+					_includeScript(path[i], path[i]);
 				}
-				// load it
-				_includeScript(path[i], path[i]);
 			}
-		}
-	};
-	// include script and publish event once loaded
-	var _includeScript = function(name, path) {
-		var path = (path || name), path = _js.test(path) ? path : path + '.js';
-		// create script element
-		var script = d.createElement('script');
-		script.src = path;
-		script.async = t;
-		// add it to queue
-		_scriptQ[name] = { n:name, u:path, l:f, e:{} };
-		// listen for loaded
-		script.onload = script.onreadystatechange = function() {
-			if (!script.readyState || (/loaded|complete/).test(script.readyState)) {
-				// kill onload listener
-				script.onload = script.onreadystatechange = null;
-				// loaded
-				_publish(name);
-			}
+		},
+		// include script and publish event once loaded
+		_includeScript = function(name, path) {
+			var path = (path || name), path = _js.test(path) ? path : path + '.js';
+			// create script element
+			var script = d.createElement('script');
+			script.src = path;
+			script.async = t;
+			// add it to queue
+			_scriptQ[name] = { n:name, u:path, l:f, e:{} };
+			// listen for loaded
+			script.onload = script.onreadystatechange = function() {
+				if (!script.readyState || (/loaded|complete/).test(script.readyState)) {
+					// kill onload listener
+					script.onload = script.onreadystatechange = null;
+					// loaded
+					_publish(name);
+				}
+			};
+			// add it to the end of the document head
+			_head.appendChild(script);
 		};
-		// add it to the end of the document head
-		_head.appendChild(script);
-	};
 	// Require
 	Me.require = function(a, b, c) {
 		var len = arguments.length,
@@ -133,9 +133,9 @@ var Prereq = (function(d) {
 		return (moduleNames.length == 0) ? _scriptQ : t;
 	};
 	// CommonJS type module definition
-	Me.define = function(name, callback){
+	Me.define = function(name, b, c){
 		var exports = {};
-		callback(exports);
+		c ?	Me.require(b, function(){ c(exports); }) : b(exports);
 		_scriptQ[name].e = exports;
 		return Me;
 	};
