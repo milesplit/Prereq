@@ -140,6 +140,7 @@ var Prereq = (function(d) {
 				clearTimeout(timer);
 			});
 		}
+		return Me;
 	};
 	// loaded?
 	Me.loaded = function(moduleNames) {
@@ -160,6 +161,7 @@ var Prereq = (function(d) {
 	Me.subscribe = function(name, callback) {
 		_subscriptions[name] = _subscriptions[name] || [];
 		_subscriptions[name].push(callback);
+		return Me;
 	};
 	// CommonJS type module definition
 	Me.define = function(name, b, c){
