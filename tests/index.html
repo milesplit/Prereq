@@ -22,44 +22,63 @@ $(document).ready(function() {
 	};
 	// need a way to reset state in Prereq ... clear all?
 	module('Basic Tests');
+	
 	asyncTest("Un-aliased URL", 1, function() {
 		var url;
 		url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
 		Prereq.require(url, function() {
 			var loaded = Prereq.loaded();
-			ok(1, 'URL has loaded');
+			ok(url in loaded && loaded[url].l, 'URL has loaded');
 			start(); // tells QUnit we're back from our async call and it can resume running through tests
+		});
+	});
+
+	asyncTest("Aliased URL", 1, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		Prereq.require({jquery:url}, function() {
+			var loaded = Prereq.loaded();
+			console.log(loaded);
+			ok( url in loaded, 'URL in loaded()');
+			start();
 		});
 	});
 
 	asyncTest("Aliased URL", 2, function() {
 		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
-		Prereq.require('jquery', url, function() {
+		var url2 = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		Prereq.require([url,url2], function() {
 			var loaded = Prereq.loaded();
+			console.log(loaded);
 			ok( url in loaded, 'URL in loaded()');
-			ok( 'jquery' in loaded, 'Alias in loaded() as well');
+			ok( url2 in loaded, 'URL in loaded()');
 			start();
 		});
 	});
-
-	/*
-	asyncTest("Dependencies", 2, function() {
-		var url = 'module.js';
-		// uh, how do i specify an alias, URL, dependencies and a callback?
-		Prereq.require('module', 'module.js', function() {
-			var loaded = Prereq.loaded();
-			ok( url in loaded, 'URL in loaded()');
-			ok( 'module' in loaded, 'Alias in loaded() as well');
-			start();
-		});
+	
+	asyncTest("Multiple aliased URLs", 2, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		var url2 = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		Prereq.require(
+			{
+				jquery: url,
+				module: url2
+			},
+			function() {
+				var loaded = Prereq.loaded();
+				console.log(loaded);
+				ok( url in loaded, 'URL in loaded()');
+				ok( url2 in loaded, 'URL in loaded()');
+				start();
+			}
+		);
 	});
-	*/
 
 
 	// Test loading of invalid URL
 
 
 	// INTERNALS
+	/*
 	module('Internals');
 	asyncTest("Testing structure returned from loaded()", 8, function() {
 		var alias = 'jquery';
@@ -84,9 +103,7 @@ $(document).ready(function() {
 			start(); // tells QUnit we're back from our async call and it can resume running through tests
 		});
 	});
-
-
-	//console.log(Prereq.loaded());
+	*/
 });
 </script>
 </head>
