@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+      "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<link rel="stylesheet" href="qunit/qunit.css" type="text/css"/>
+<script src="http://code.jquery.com/jquery-latest.js"> </script>
+<script type="text/javascript" src="qunit/qunit.js"></script>
+<script type="text/javascript" src="prereq.js"></script>
+<script type="text/javascript">
+/*
+Things to test
+
+- loading un-aliased URL
+- un-aliased with callback
+- aliased URL
+- aliased URL with callback
+*/
+$(document).ready(function() {
+	QUnit.testStart = function(test) {
+		console.log('Resetting Prereq before "' + test.name + '"');
+		Prereq.cleanup();
+	};
+	// need a way to reset state in Prereq ... clear all?
+	module('Basic Tests');
+	asyncTest("Un-aliased URL", 1, function() {
+		var url;
+		url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		Prereq.require(url, function() {
+			var loaded = Prereq.loaded();
+			ok(1, 'URL has loaded');
+			start(); // tells QUnit we're back from our async call and it can resume running through tests
+		});
+	});
+
+	asyncTest("Aliased URL", 2, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		Prereq.require('jquery', url, function() {
+			var loaded = Prereq.loaded();
+			ok( url in loaded, 'URL in loaded()');
+			ok( 'jquery' in loaded, 'Alias in loaded() as well');
+			start();
+		});
+	});
+
+	/*
+	asyncTest("Dependencies", 2, function() {
+		var url = 'module.js';
+		// uh, how do i specify an alias, URL, dependencies and a callback?
+		Prereq.require('module', 'module.js', function() {
+			var loaded = Prereq.loaded();
+			ok( url in loaded, 'URL in loaded()');
+			ok( 'module' in loaded, 'Alias in loaded() as well');
+			start();
+		});
+	});
+	*/
+
+
+	// Test loading of invalid URL
+
+
+	// INTERNALS
+	module('Internals');
+	asyncTest("Testing structure returned from loaded()", 8, function() {
+		var alias = 'jquery';
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		Prereq.require(alias, url, function() {
+			var loaded, a;
+			loaded = Prereq.loaded();
+			// keys exist
+			ok( url in loaded, 'URL in loaded');
+			ok( alias in loaded, 'Automatically generated URL alias in loaded');
+
+			a = loaded[url];
+			ok( a.l == true, 'l property for ' + url);
+			ok( a.n == url, 'n property for ' + url);
+			ok( a.u == url, 'u property for ' + url);
+
+			a = loaded[alias];
+			ok( a.l == true, 'l property for ' + alias);
+			ok( a.n == alias, 'n property for ' + alias);
+			ok( a.u == url, 'u property for ' + alias);
+			console.log(loaded);
+			start(); // tells QUnit we're back from our async call and it can resume running through tests
+		});
+	});
+
+
+	//console.log(Prereq.loaded());
+});
+</script>
+</head>
+<body>
+<h1 id="qunit-header">QUnit example</h1>
+<h2 id="qunit-banner"></h2>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests">
+</ol>
+</body>
+</html>
+
