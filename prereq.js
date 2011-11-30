@@ -32,9 +32,11 @@ var Prereq = (function(d) {
 		_sep = '_',																	// character to use as separator (saves a few bytes too)
 		// SMALL PUBSUB
 		_publish = function(name) {													// make sure subscription is initialized
-			var module = _initModule(name);											// get module
+			var module = _initModule(name),											// get module
+				i=0,																// set iterator
+				len=module.s.length;												// set length
 			module.l = t;															// mark as loaded
-			for (var i=0; i < module.s.length; i++) {								// loop through to all subscribers
+			for (; i < len; i++) {													// loop through to all subscribers
 				module.s[i](module.e);												// hit the callback, with exports data if applicable
 			}
 			module.s = [];															// unsubscribe all
@@ -60,9 +62,10 @@ var Prereq = (function(d) {
 		// include script and publish event once loaded
 		_includeScript = function(name, path) {
 			_initModule(name);														// add it to queue
-			var path = _js.test(path) ? path : path + '.js',						// if no js at end then add it
-				path = (path.charAt(0) === '/' || path.match(/^\w+:/) ?				// is path an absolute path?
-					'' : _baseDir) + path;											// if not then prepend baseDir
+			path = (path.charAt(0) === '/' || /^\w+:/.test(path)) ?					// is path an absolute path?
+					path :															// then leave it alone
+					_baseDir + path	+												// if not then prepend baseDir
+					(_js.test(path) ? '' : '.js');									// append .js if not present
 			var script = d.createElement('script');									// create script element
 			script.src = path;														// set src to path
 			script.async = t;														// load asynchronously
@@ -81,7 +84,15 @@ var Prereq = (function(d) {
 		var name = [],																// name will start as an array, but will be concatenated
 			path = [],																// path is an array containing zero or more scripts to load
 			callback = _functionize(c),												// callback function once loaded
-			deps = [];																// dependencies array
+			deps = [],																// dependencies array
+			afterDepsLoaded = function(){											// will call this function once dependencies are loaded
+				Me.loaded(name) ?													// has this module already loaded?
+					callback(_modules[name].e) : 									// yes, so hit the callback immediately
+					(																// no, hasn't loaded yet...
+					Me.subscribe(name, callback) &&									// ... so subscribe to the pubsub event for when it loads
+					_qModule(name, path)											// and then put it in the queue to be loaded if it's not already
+					);
+			};
 		(arguments.length == 2) &&													// if two arguments, handle overloading
 			_isFunction(b) ?														// is second argument a function?
 				(callback = b) :													// if so then it is the callback
@@ -99,14 +110,6 @@ var Prereq = (function(d) {
 			name = path.join(_sep)													// so we need a name, so use the path array merged together, separated by _sep
 				.replace(_js, '');													// trim any trailing .js from the name
 		}
-		var afterDepsLoaded = function(){											// will call this function once dependencies are loaded
-			if (Me.loaded(name)) {													// has this module already loaded?
-				callback(_getModule(name).e);											// yes, so hit the callback immediately
-			} else {																// no, hasn't loaded yet...
-				Me.subscribe(name, callback);										// ... so subscribe to the pubsub event for when it loads
-				_qModule(name, path);												// and then put it in the queue to be loaded if it's not already
-			}
-		};
 		Me.loaded(deps) ?															// are dependencies loaded yet?
 			afterDepsLoaded() :														// yes, so proceed
 			Me.require(deps, afterDepsLoaded);										// nope... so let's wait for them to load
