@@ -142,8 +142,11 @@ var Prereq = (function(d) {
 			t;																		// argument passed in and we made it this far... which means all were loaded
 	};
 	// Pubsub subscribe... decided to make public on Alan's suggestion, easy enough
-	Me.subscribe = function(name, callback) {
-		_initModule(name).s.push(callback);											// add this subscriber
+	Me.subscribe = function(a, b) {
+		b ? t :																		// allow overloading, if one argument
+			(b=a) &&																// then a is the callback (normally b)
+			(a=_last);																// and use the last module referenced
+		_initModule(a).s.push(b);													// add this subscriber
 		return Me;
 	};
 	// CommonJS type module definition

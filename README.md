@@ -111,9 +111,13 @@ dependencies - String or array of strings.
 
 callback (function) - Required. A wrapper for the code of your module. If present, either second or third argument but always last. Add exports as the argument to this method and add to it for what you want to be returned your callback. This is like CommonJS.
 
-**subscribe(name, callback)**
+**subscribe([name, ]callback)**
 
 Allows you to listen in on the internal pubsub to see when something loads.
+
+name = (string) Optional. Name of the module to subscribe to its publish event. If you leave it off then will use the module previously referenced in require.
+
+callback = (function) Required. What hit with publish.
 
 **failover(url[, timeout])**
 
