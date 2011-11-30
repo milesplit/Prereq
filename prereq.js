@@ -43,25 +43,17 @@ var Prereq = (function(d) {
 		},
 		// get/initialize the module
 		_initModule = function(name){
-			return _modules[name] = _modules[name] || { l:f, e:{}, s:[] }			// get it and set it
-		},
-		// Add to queue
-		_qModule = function(name, path) {
-			if (_modules[name]) {													// if module does not yet exist in queue
-				_initModule(name);
-				for (var i=0, len=path.length; i < len; i++) {						// Loop through array and add each
-					(path[i] != name) &&											// if group doesnt have same name as this one script
-						Me.subscribe(path[i], function(){							// listen for this to complete
-							Me.loaded(path) &&										// if all are loaded
-								_publish(name);										// then broadcast that entire group is loaded
-						});
-					_includeScript(path[i], path[i]);								// load this script
+			return _modules[name] = _modules[name] ||								// get it
+				{																	// or set it
+					l:f,															// loaded?
+					t:f,															// script tag added?
+					e:{},															// exports
+					s:[]															// subscribers
 				}
-			}
 		},
 		// include script and publish event once loaded
 		_includeScript = function(name, path) {
-			_initModule(name);														// add it to queue
+			_initModule(name).t=t;													// add it to queue
 			path = (path.charAt(0) === '/' || /^\w+:/.test(path)) ?					// is path an absolute path?
 					path :															// then leave it alone
 					_baseDir + path	+												// if not then prepend baseDir
@@ -81,17 +73,26 @@ var Prereq = (function(d) {
 		};
 	// Require
 	Me.require = function(a, b, c) {
-		var name = [],																// name will start as an array, but will be concatenated
-			path = [],																// path is an array containing zero or more scripts to load
-			callback = _functionize(c),												// callback function once loaded
-			deps = [],																// dependencies array
-			afterDepsLoaded = function(){											// will call this function once dependencies are loaded
-				Me.loaded(name) ?													// has this module already loaded?
-					callback(_modules[name].e) : 									// yes, so hit the callback immediately
-					(																// no, hasn't loaded yet...
-					Me.subscribe(name, callback) &&									// ... so subscribe to the pubsub event for when it loads
-					_qModule(name, path)											// and then put it in the queue to be loaded if it's not already
-					);
+		var name = [],														// name will start as an array, but will be concatenated
+			path = [],														// path is an array containing zero or more scripts to load
+			callback = _functionize(c),										// callback function once loaded
+			deps = [],														// dependencies array
+			afterDepsLoaded = function(module){								// will call this function once dependencies are loaded
+				module = _initModule(name);									// get module
+				Me.loaded(name) ?											// has this module already loaded?
+					callback(module.e) : 									// yes, so hit the callback immediately
+					(function(){											// no, hasn't loaded yet...
+						Me.subscribe(name, callback);						// ... so subscribe to the pubsub event for when it loads
+						for (var i=0, len=path.length; i < len; i++) {		// Loop through and each to queue
+							(path[i] != name) &&							// if group doesnt have same name as this one script
+								Me.subscribe(path[i], function(){			// listen for this to complete
+									Me.loaded(path) &&						// if all are loaded
+										_publish(name);						// then broadcast that entire group is loaded
+								});
+							!module.t &&									// if script tag hasn't already been added
+								_includeScript(path[i], path[i]);			// load this script
+						}
+					})();
 			};
 		(arguments.length == 2) &&													// if two arguments, handle overloading
 			_isFunction(b) ?														// is second argument a function?
