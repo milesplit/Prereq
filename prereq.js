@@ -23,10 +23,16 @@ var Prereq = (function(d) {
 		_isArray = function(o) { return {}.toString.call(o) == '[object Array]' }, 	// test for array
 		_isFunction = function(o) { return (typeof o == 'function') }, 				// test for function
 		_isObject = function(o) { return o instanceof Object }, 					// test for function
-		_arrayify = function(a) { return (a) ? ((_isArray(a)) ? a : [a]) : [] },	// turn something into an array
-		_functionize = function(a) { return (_isFunction(a)) ? a : function(){} },	// turn something into a function
-		_tag = (function(){	var scripts = d.getElementsByTagName('script'); return scripts[scripts.length-1] })(),	// get calling script tag
-		_baseDir = (function(){ return _tag ? _tag.getAttribute('data-main') || '' : '' })(),	// get data-main attribute from script tag
+		_arrayify = function(a) { return a ? (_isArray(a) ? a : [a]) : [] },		// turn something into an array
+		_functionize = function(a) { return _isFunction(a) ? a : function(){} },	// turn something into a function
+		_tag = (function(){															// get calling script tag
+			var scripts = d.getElementsByTagName('script');
+			return scripts[scripts.length-1]
+		})(),
+		_baseDir = (function(){														// get data-main attribute from script tag
+				return _tag ?														// did we find the script element?
+					_tag.getAttribute('data-main') || '' : ''						// return it or empty string
+		})(),
 		_head = d.head || d.getElementsByTagName('head')[0], 						// get head or location to put scripts
 		_js = /\.js$/, 																// regex for ending .js
 		_sep = '_',																	// character to use as separator (saves a few bytes too)
@@ -113,7 +119,7 @@ var Prereq = (function(d) {
 		}
 		Me.loaded(deps) ?															// are dependencies loaded yet?
 			afterDepsLoaded() :														// yes, so proceed
-			Me.require(deps, afterDepsLoaded);										// nope... so let's wait for them to load
+			Me.subscribe(deps, afterDepsLoaded);									// nope... so let's wait for them to load
 		_last = name;																// save name of this module, so we can add failovers
 		return Me;
 	};
