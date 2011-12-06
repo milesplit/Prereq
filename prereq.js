@@ -141,6 +141,7 @@ var Prereq = (function(d) {
 		names = _arrayify(names);							// make paths an array, if it's not already
 		for (var i=0, len=names.length;	i < len; i++) {		// loop through module names
 			if (!_initModule(names[i]).l) {					// if module is not loaded
+				// .... this is where we need to add subscribe listener to test once whole thing loaded to hit callback
 				return f;									// return false now
 			}
 		}
