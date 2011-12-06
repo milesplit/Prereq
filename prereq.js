@@ -119,7 +119,7 @@ var Prereq = (function(d) {
 		}
 		Me.loaded(deps) ?															// are dependencies loaded yet?
 			afterDepsLoaded() :														// yes, so proceed
-			Me.subscribe(deps, afterDepsLoaded);									// nope... so let's wait for them to load
+			Me.subscribe(deps, afterDepsLoaded);							 		// nope... so let's wait for them to load
 		_last = name;																// save name of this module, so we can add failovers
 		return Me;
 	};
@@ -137,33 +137,40 @@ var Prereq = (function(d) {
 		}
 	};
 	// loaded?
-	Me.loaded = function(names) {													// Check on these modules/scripts to see if they have loaded
-		names = _arrayify(names);													// make paths an array, if it's not already
-		for (var i=0, len=names.length;	i < len; i++) {								// loop through module names
-			if (!_initModule(names[i]).l) {											// if module is not loaded
-				return f;															// return false now
+	Me.loaded = function(names, callback) {					// Check on these modules/scripts to see if they have loaded
+		names = _arrayify(names);							// make paths an array, if it's not already
+		for (var i=0, len=names.length;	i < len; i++) {		// loop through module names
+			if (!_initModule(names[i]).l) {					// if module is not loaded
+				return f;									// return false now
 			}
 		}
-		return (len == 0) ?															// were no arguments passed in?
-			_modules :																// then they want a list of all modules and their status
-			t;																		// argument passed in and we made it this far... which means all were loaded
+		return (len == 0) ?									// were no arguments passed in?
+			_modules :										// then they want a list of all modules and their status
+			(function(){									// if arguments and we made it this far then everything loaded
+				_isFunction(callback) && callback();		// hit callback if provided
+				return t;									// return true to indicate all were loaded
+			})();											
 	};
-	// Pubsub subscribe... decided to make public on Alan's suggestion, easy enough
+	// Pubsub subscribe
 	Me.subscribe = function(a, b) {
-		b ? t :																		// allow overloading, if one argument
-			(b=a) &&																// then a is the callback (normally b)
-			(a=_last);																// and use the last module referenced
-		_initModule(a).s.push(b);													// add this subscriber
+		b ? t :												// allow overloading, if one argument
+			(b=a) &&										// then a is the callback (normally b)
+			(a=_last);										// and use the last module referenced
+		var a = _arrayify(a),								// make a always an array
+			i=0, len=a.length;								// initialize for loop variables
+		for (; i < len; i++) {								// loop through module names
+			_initModule(a[i]).s.push(b);					// add this subscriber
+		}
 		return Me;
 	};
 	// CommonJS type module definition
 	Me.define = function(name, b, c){
-		var exports = {};															// Create exports object
-		c ?																			// If three arguments?
-			Me.require(b, function(){ c(exports); }) : 								// Make sure deps are loaded, then call the callback
-			b(exports); 															// No deps, so just hit the callback, passing in exports
-		_modules[name].e = exports; 												// Store the output so that we can pass it to subscribers
+		var exports = {};									// Create exports object
+		c ?													// If three arguments?
+			Me.require(b, function(){ c(exports); }) : 		// Make sure deps are loaded, then call the callback
+			b(exports); 									// No deps, so just hit the callback, passing in exports
+		_modules[name].e = exports; 						// Store the output so that we can pass it to subscribers
 		return Me;
 	};
-	return Me;																		// return self
+	return Me;												// return self
 })(document);
