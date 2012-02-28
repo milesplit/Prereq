@@ -60,7 +60,7 @@ var Prereq = (function(d) {
 		// include script and publish event once loaded
 		_includeScript = function(name, path) {
 			_initModule(name).t=t;													// add it to queue
-			path = (path.charAt(0) === '/' || /^\w+:/.test(path)) ?					// is path an absolute path?
+			path = (path.toString().charAt(0) === '/' || /^\w+:/.test(path)) ?					// is path an absolute path?
 					path :															// then leave it alone
 					_baseDir + path	+												// if not then prepend baseDir
 					(_js.test(path) ? '' : '.js');									// append .js if not present
