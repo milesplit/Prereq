@@ -1,6 +1,6 @@
 /*prereq1.11|MIT*/
 // prereq.js
-// Version - 1.11
+// Version - 1.12
 //
 // by
 // Jason Byrne - @jasonbyrne - jbyrne[at]milesplit.com
@@ -171,6 +171,18 @@ var Prereq = (function(d) {
 			Me.require(b, function(){ c(exports); }) : 		// Make sure deps are loaded, then call the callback
 			b(exports); 									// No deps, so just hit the callback, passing in exports
 		_modules[name].e = exports; 						// Store the output so that we can pass it to subscribers
+		return Me;
+	};
+	// CSS convinience method
+	Me.style = function(a){
+		a = _arrayify(a);
+		var i=0, len=a.length;
+		for (; i<len; i++) {
+			var l = d.createElement('link');
+			l.rel = 'stylesheet';
+			l.href = a[i];
+			_head.appendChild(l);
+		}
 		return Me;
 	};
 	return Me;												// return self
