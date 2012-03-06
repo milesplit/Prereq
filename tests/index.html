@@ -3,10 +3,10 @@
 <html>
 <head>
 <link rel="stylesheet" href="qunit/qunit.css" type="text/css"/>
-<script src="http://code.jquery.com/jquery-latest.js"> </script>
-<script type="text/javascript" src="qunit/qunit.js"></script>
-<script type="text/javascript" src="prereq.js"></script>
-<script type="text/javascript">
+<script src="http://code.jquery.com/jquery-latest.js" class="required"></script>
+<script type="text/javascript" src="qunit/qunit.js" class="required"></script>
+<script type="text/javascript" src="prereq.js" class="required"></script>
+<script type="text/javascript" class="required">
 /*
 Things to test
 
@@ -19,6 +19,12 @@ $(document).ready(function() {
 	QUnit.testStart = function(test) {
 		console.log('Resetting Prereq before "' + test.name + '"');
 		Prereq.cleanup();
+		
+		var $scripts = jQuery('script');
+		jQuery.each(jQuery('script'), function() {
+			var $el = $(this);
+			if (!$el.hasClass('required')) $el.remove();
+		});
 	};
 	// need a way to reset state in Prereq ... clear all?
 	module('Basic Tests');
@@ -31,6 +37,7 @@ $(document).ready(function() {
 			start(); // tells QUnit we're back from our async call and it can resume running through tests
 		});
 	});
+
 
 	asyncTest("Un-aliased URL and a dependency", 2, function() {
 		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
@@ -152,6 +159,32 @@ $(document).ready(function() {
 				console.log(loaded);
 				ok( url3 in loaded, 'URL in loaded()');
 				start();
+			}
+		);
+	});
+	
+	asyncTest("Require on same URL multiple times", 3, function() {
+		var url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js';
+		var url2 = 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js';
+		Prereq.require(
+			url,
+			function() {
+				var loaded = Prereq.loaded();
+				var scripts = jQuery('script').length;
+				console.log(loaded);
+				console.log(scripts + ' script tags');
+				
+				ok( url in loaded, 'jQuery 1.7.1 loaded');
+				
+				Prereq.require(url, function() {
+					var loaded = Prereq.loaded();
+					console.log(loaded);
+					
+					ok( url in loaded, 'jQuery 1.7.1 callback #2');
+					ok( scripts == jQuery('script').length, 'Success');
+					start();
+					// hopefully didn't try to load more than once
+				});
 			}
 		);
 	});
